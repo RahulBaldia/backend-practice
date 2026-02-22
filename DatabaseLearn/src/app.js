@@ -7,6 +7,7 @@ const app = express();
 app.use(express.json())
 
 
+<<<<<<< HEAD
 app.post('/notes', async (req, res) => {
     const { title, description } = req.body;
 
@@ -29,5 +30,18 @@ app.get('/notes', async (req, res) => {
         notes
     });
 });
+=======
+app.post('/notes', async (req,res) =>{
+    const{title,description} = req.body
+    const note = await noteModel.create({
+        title, description
+    })
+
+    res.status(201).json({
+        message:"Note Created Successfully",
+        note
+    })
+})
+>>>>>>> 83afd43be12418320575cd8eccba30873df464cf
 
 module.exports = app
