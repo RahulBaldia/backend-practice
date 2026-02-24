@@ -6,7 +6,7 @@ function App() {
   const [notes, setNotes] = useState([])
 
   useEffect(() => {
-    axios.get("http://localhost:3000/notes")
+    axios.get("https://backend-practice-9ezm.onrender.com/notes")
       .then(res => {
         setNotes(res.data.notes)
       })
@@ -18,7 +18,7 @@ function App() {
     const title = e.target.title.value
     const description = e.target.description.value
 
-    axios.post("http://localhost:3000/notes", {
+    axios.post("https://backend-practice-9ezm.onrender.com/notes", {
       title,
       description
     })
@@ -29,7 +29,7 @@ function App() {
   }
 
   const deleteHandler = async (id) => {
-    await axios.delete(`http://localhost:3000/notes/${id}`)
+    await axios.delete(`https://backend-practice-9ezm.onrender.com/notes/${id}`)
     setNotes(notes.filter(note => note._id !== id))
   }
 
@@ -38,7 +38,7 @@ function App() {
     const newDescription = prompt("Enter new description")
 
     const res = await axios.patch(
-      `http://localhost:3000/notes/${id}`,
+      `https://backend-practice-9ezm.onrender.com/notes/${id}`,
       {
         title: newTitle,
         description: newDescription
