@@ -1,47 +1,13 @@
-// Server ko create and config karna 
 
 const express = require("express")
-const noteModel = require('./models/notes.model.js')
+const authRouter = require("./routes/auth.routes")
+const cookieParser = require("cookie-parser")
 
 const app = express();
 app.use(express.json())
+app.use(cookieParser())
+app.use('/api/auth', authRouter)
 
 
 
-app.post('/notes', async (req, res) => {
-    const { title, description } = req.body;
-
-    const note = await noteModel.create({
-        title,
-        description
-    });
-
-    res.status(201).json({
-        message: "Note Created Successfully",
-        note
-    });
-});
-
-app.get('/notes', async (req, res) => {
-    const notes = await noteModel.find();
-
-    res.status(200).json({
-        message: "Notes fetched successfully",
-        notes
-    });
-});
-
-app.post('/notes', async (req,res) =>{
-    const{title,description} = req.body
-    const note = await noteModel.create({
-        title, description
-    })
-
-    res.status(201).json({
-        message:"Note Created Successfully",
-        note
-    })
-})
-
-
-module.exports = app
+module.exports = app  
