@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 
 app.post('/notes', async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description } = req.body;        
 
     const note = await noteModel.create({
         title,

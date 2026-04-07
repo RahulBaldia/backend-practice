@@ -1,82 +1,78 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { useAuth } from '../hooks/useAuth'
 
 const Login = () => {
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+    const { loading, handleLogin } = useAuth()
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+    const [username, setUsername] = useState("")
+    const [password, setPassword] = useState("")
 
-    axios.post("http://localhost:3000/api/auth/login", {
-      username,
-      password
-    }, {
-      withCredentials: true
-    })
-      .then(res => {
-        console.log(res.data)
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  };
+    const navigate = useNavigate()
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        await handleLogin(username, password)
+        navigate('/')
+    }
 
-      <div className="bg-white p-8 rounded-xl shadow-md w-96">
+    if (loading) {
+        return (
+            <main className="min-h-screen flex items-center justify-center">
+                <h1 className="text-xl font-semibold">Loading...</h1>
+            </main>
+        )
+    }
 
-        <h1 className="text-2xl font-bold text-center mb-6">
-          Login
-        </h1>
+    return (
 
-        <form
-          onSubmit={handleLogin}
-          className="flex flex-col gap-4"
-        >
+        <main className="min-h-screen flex items-center justify-center bg-gray-100">
 
-          <input
-            type="text"
-            placeholder="Username"
-            className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+            <div className="bg-white p-8 rounded-xl shadow-md w-96">
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+                <h1 className="text-2xl font-bold text-center mb-6">
+                    Login
+                </h1>
 
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
-          >
-            Login
-          </button>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-        </form>
+                    <input
+                        onChange={(e) => setUsername(e.target.value)}
+                        type="text"
+                        placeholder="Enter username"
+                        className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
 
-        <p className="text-center mt-4 text-sm">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="text-indigo-600 font-semibold hover:underline"
-          >
-            Register
-          </Link>
-        </p>
+                    <input
+                        onChange={(e) => setPassword(e.target.value)}
+                        type="password"
+                        placeholder="Enter password"
+                        className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
 
-      </div>
+                    <button
+                        className="bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
+                    >
+                        Login
+                    </button>
 
-    </div>
-  );
-};
+                </form>
 
-export default Login;
+                <p className="text-center mt-4 text-sm">
+                    Don't have an account?{" "}
+                    <Link
+                        to="/register"
+                        className="text-indigo-600 font-semibold hover:underline"
+                    >
+                        Create One
+                    </Link>
+                </p>
+
+            </div>
+
+        </main>
+    )
+}
+
+export default Login

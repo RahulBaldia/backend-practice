@@ -1,16 +1,18 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./features/auth/pages/Login";
-import Register from "./features/auth/pages/Register";
+import { RouterProvider } from "react-router"
+import { router } from "./AppRoutes"
+import { AuthProvider } from "./features/auth/auth.context"
+import { PostContextProvider } from "./features/post/post.context"
 
-const App = () => {
+
+function App() {
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-    </BrowserRouter>
-  );
-};
+    <AuthProvider>
+      <PostContextProvider>
+        <RouterProvider router={router} />
+      </PostContextProvider>
+    </AuthProvider>
+  )
+}
 
-export default App;
+export default App

@@ -1,92 +1,85 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { useAuth } from '../hooks/useAuth'
 
 const Register = () => {
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const { loading, handleRegister } = useAuth()
 
-  const handleRegister = (e) => {
-    e.preventDefault();
+    const [username, setUsername] = useState("")
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
 
-    axios.post("http://localhost:3000/api/auth/register", {
-      username,
-      email,
-      password
-    }, {
-      withCredentials: true
-    })
-      .then(res => {
-        console.log(res.data)
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  };
+    const navigate = useNavigate()
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        await handleRegister(username, email, password)
+        navigate('/')
+    }
 
-      <div className="bg-white p-8 rounded-xl shadow-md w-96">
+    if (loading) {
+        return (
+            <main className="min-h-screen flex items-center justify-center">
+                <h1 className="text-xl font-semibold">Loading...</h1>
+            </main>
+        )
+    }
 
-        <h1 className="text-2xl font-bold text-center mb-6">
-          Register
-        </h1>
+    return (
+        <main className="min-h-screen flex items-center justify-center bg-gray-100">
 
-        <form
-          onSubmit={handleRegister}
-          className="flex flex-col gap-4"
-        >
+            <div className="bg-white p-8 rounded-xl shadow-md w-96">
 
-          <input
-            type="text"
-            placeholder="Username"
-            className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+                <h1 className="text-2xl font-bold text-center mb-6">
+                    Register
+                </h1>
 
-          <input
-            type="email"
-            placeholder="Email"
-            className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+                    <input
+                        onChange={(e) => setUsername(e.target.value)}
+                        type="text"
+                        placeholder="Enter username"
+                        className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
 
-          <button
-            type="submit"
-            className="bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
-          >
-            Register
-          </button>
+                    <input
+                        onChange={(e) => setEmail(e.target.value)}
+                        type="email"
+                        placeholder="Enter email address"
+                        className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
 
-        </form>
+                    <input
+                        onChange={(e) => setPassword(e.target.value)}
+                        type="password"
+                        placeholder="Enter password"
+                        className="border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
 
-        <p className="text-center mt-4 text-sm">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-green-600 font-semibold hover:underline"
-          >
-            Login
-          </Link>
-        </p>
+                    <button
+                        className="bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
+                    >
+                        Register
+                    </button>
 
-      </div>
+                </form>
 
-    </div>
-  );
-};
+                <p className="text-center mt-4 text-sm">
+                    Already have an account?{" "}
+                    <Link
+                        to="/login"
+                        className="text-green-600 font-semibold hover:underline"
+                    >
+                        Login
+                    </Link>
+                </p>
 
-export default Register;
+            </div>
+
+        </main>
+    )
+}
+
+export default Register

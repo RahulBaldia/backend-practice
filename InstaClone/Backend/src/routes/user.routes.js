@@ -1,28 +1,26 @@
-const express = require("express")
-const router = express.Router()
-
-const authMiddleware = require("../middlewares/auth.middleware")
+const express = require('express');
 const userController = require("../controllers/user.controller")
+const identifyUser = require("../middlewares/auth.middleware")
 
-// send follow request
-router.post("/follow/:userId", authMiddleware, userController.createFollowController)
+const userRouter = express.Router();
 
-// accept follow request
-router.patch("/follow/accept/:requestId", authMiddleware, userController.acceptFollowController)
 
-// reject follow request
-router.patch("/follow/reject/:requestId", authMiddleware, userController.rejectFollowController)
+/**
+ * @route POST /api/users/follow/:userid
+ * @description Follow a user
+ * @access Private
+ */
+userRouter.post("/follow/:username", identifyUser, userController.followUserController)
 
-// pending requests
-router.get("/follow/requests", authMiddleware, userController.getPendingRequestsController)
 
-// unfollow
-router.delete("/unfollow/:userId", authMiddleware, userController.deleteFollowController)
+/** 
+ * @route POST /api/users/unfollow/:userid
+ * @description Unfollow a user
+ * @access Private
+ */
+userRouter.post("/unfollow/:username", identifyUser, userController.unfollowUserController)
 
-// followers
-router.get("/followers/:userId", authMiddleware, userController.getFollowersController)
 
-// following
-router.get("/following/:userId", authMiddleware, userController.getFollowingController)
 
-module.exports = router
+
+module.exports = userRouter;
