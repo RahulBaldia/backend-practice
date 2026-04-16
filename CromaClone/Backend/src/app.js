@@ -4,24 +4,19 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/database");
 
 dotenv.config();
-
-// Connect to database
 connectDB();
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
+app.use("/api/auth", require("./routes/Authroutes"));
+app.use("/api/products", require("./routes/Productroutes"));
+app.use("/api/cart", require("./routes/Cartroutes"));
+app.use("/api/orders", require("./routes/Orderroutes"));
+
 app.get("/", (req, res) => {
   res.json({ message: "Croma Clone API is running!" });
 });
-
-// Routes (baad mein add karenge)
-// app.use("/api/products", productRoutes);
-// app.use("/api/users", userRoutes);
-// app.use("/api/cart", cartRoutes);
 
 module.exports = app;

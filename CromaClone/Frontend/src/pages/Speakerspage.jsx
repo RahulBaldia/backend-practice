@@ -1,34 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Children } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FeaturedCard, DealCard } from "../components/ProductCard";
+import { FeaturedCard, DealCard, SkeletonCard } from "../components/ProductCard";
+import { getProducts } from "../services/productService";
 
-const featuredProducts = [
-  { id: 1, name: "JBL Charge 5", price: 14999, originalPrice: 19999, rating: 4.8, reviews: 23421, badge: "Best Seller", badgeColor: "#00e5ff", specs: ["40W", "20hr Battery", "BT 5.1", "IP67"], img: "🔊" },
-  { id: 2, name: "Sony SRS-XB43", price: 16990, originalPrice: 22990, rating: 4.7, reviews: 12043, badge: "Premium", badgeColor: "#a855f7", specs: ["32W", "24hr Battery", "BT 5.0", "IP67"], img: "🔊" },
-  { id: 3, name: "Bose SoundLink Max", price: 39900, originalPrice: 46900, rating: 4.9, reviews: 8762, badge: "Top Rated", badgeColor: "#22c55e", specs: ["—W", "20hr Battery", "BT 5.3", "IP67"], img: "🔊" },
-  { id: 4, name: "JBL Flip 6", price: 9999, originalPrice: 13999, rating: 4.6, reviews: 45321, badge: "Trending", badgeColor: "#f59e0b", specs: ["30W", "12hr Battery", "BT 5.1", "IP67"], img: "🔊" },
-  { id: 5, name: "boAt Stone 1400", price: 3499, originalPrice: 6999, rating: 4.3, reviews: 89432, badge: "Value Pick", badgeColor: "#3b82f6", specs: ["14W", "7hr Battery", "BT 5.0", "IPX5"], img: "🔊" },
-  { id: 6, name: "Sony SRS-XE300", price: 12990, originalPrice: 17990, rating: 4.5, reviews: 9832, badge: "Popular", badgeColor: "#ef4444", specs: ["—W", "24hr Battery", "BT 5.2", "IP67"], img: "🔊" },
-];
-
-const dealProducts = [
-  { id: 7, name: "JBL Go 3", price: 2499, originalPrice: 3999, discount: 38, rating: 4.3, reviews: 67432, specs: ["4.2W", "5hr Battery", "BT 5.1", "IP67"], img: "🔊" },
-  { id: 8, name: "boAt Aavante Bar 1000", price: 2999, originalPrice: 5999, discount: 50, rating: 4.2, reviews: 34521, specs: ["60W", "—", "BT 5.0", "—"], img: "🔊" },
-  { id: 9, name: "Zebronics Zeb-County", price: 799, originalPrice: 1599, discount: 50, rating: 4.0, reviews: 54321, specs: ["5W", "—", "BT 5.0", "—"], img: "🔊" },
-  { id: 10, name: "Sony SRS-XB13", price: 3990, originalPrice: 5990, discount: 33, rating: 4.4, reviews: 23421, specs: ["—W", "16hr Battery", "BT 5.0", "IP67"], img: "🔊" },
-  { id: 11, name: "JBL PartyBox 110", price: 22999, originalPrice: 32999, discount: 30, rating: 4.6, reviews: 8762, specs: ["160W", "12hr Battery", "BT 5.1", "IPX4"], img: "🔊" },
-  { id: 12, name: "Bose SoundLink Flex", price: 11900, originalPrice: 16900, discount: 30, rating: 4.7, reviews: 12043, specs: ["—W", "12hr Battery", "BT 5.3", "IP67"], img: "🔊" },
-];
-
-const brands = ["All", "JBL", "Sony", "boAt", "Bose", "Zebronics", "Marshall", "Harman", "Anker"];
+const brands = ["All", "JBL", "Sony", "boAt", "Bose", "Zebronics", "Marshall"];
 const accentColor = "#ef4444";
 
-
-
-function HSlider({ children, title, subtitle, accent }) {
+function HSlider({ children, title, subtitle, accent, loading, viewAllPath }) {
   const ref = useRef(null);
+  const navigate = useNavigate();
   const scroll = (dir) => ref.current?.scrollBy({ left: dir * 280, behavior: "smooth" });
-
   return (
     <div className="mb-14">
       <div className="flex items-end justify-between mb-5 px-4 md:px-8">
@@ -43,7 +25,7 @@ function HSlider({ children, title, subtitle, accent }) {
           <button onClick={() => scroll(1)} className="w-9 h-9 rounded-full border border-zinc-700 bg-zinc-900 flex items-center justify-center text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
-          <button className="ml-1 text-[12px] font-semibold px-4 h-9 rounded-full border transition-all hover:-translate-y-0.5"
+          <button onClick={() => navigate(viewAllPath)} className="ml-1 text-[12px] font-semibold px-4 h-9 rounded-full border transition-all hover:-translate-y-0.5"
             style={{ borderColor: `${accent}40`, color: accent, background: `${accent}10` }}>
             View All →
           </button>
@@ -51,7 +33,15 @@ function HSlider({ children, title, subtitle, accent }) {
       </div>
       <div className="relative overflow-y-visible">
         <div ref={ref} className="flex gap-4 overflow-x-auto px-4 md:px-8 pb-4 pt-4" style={{ scrollbarWidth: "none" }}>
-          {children}
+          {loading
+            ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+            : Children.map(children, (child, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}>
+                  {child}
+                </motion.div>
+              ))
+          }
         </div>
         <div className="absolute right-0 top-0 bottom-2 w-16 pointer-events-none"
           style={{ background: "linear-gradient(to left, #0a0a0a, transparent)" }} />
@@ -60,8 +50,40 @@ function HSlider({ children, title, subtitle, accent }) {
   );
 }
 
-function BrandsSection() {
-  const [active, setActive] = useState("All");
+function FilterBar({ sortBy, onSort, minRating, onRating, priceRange, onPrice }) {
+  return (
+    <div className="px-4 md:px-8 mb-8">
+      <div className="flex flex-wrap items-center gap-3">
+        <select value={sortBy} onChange={e => onSort(e.target.value)}
+          className="h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-zinc-300 outline-none cursor-pointer">
+          <option value="popular">Most Popular</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+        </select>
+        <div className="flex gap-2">
+          {[{ label: "All Ratings", value: 0 }, { label: "3★+", value: 3 }, { label: "4★+", value: 4 }, { label: "4.5★+", value: 4.5 }].map(r => (
+            <button key={r.value} onClick={() => onRating(r.value)}
+              className={`h-10 px-4 rounded-xl border text-[12px] font-semibold transition-all
+                ${minRating === r.value ? "bg-amber-400 text-black border-amber-400" : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-[12px] text-zinc-500">₹</span>
+          <input type="number" value={priceRange[0]} onChange={e => onPrice([Number(e.target.value), priceRange[1]])}
+            placeholder="Min" className="w-24 h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-white outline-none focus:border-zinc-500" />
+          <span className="text-zinc-600 text-sm">—</span>
+          <input type="number" value={priceRange[1]} onChange={e => onPrice([priceRange[0], Number(e.target.value)])}
+            placeholder="Max" className="w-28 h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-white outline-none focus:border-zinc-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BrandsSection({ onBrandSelect, activeBrand }) {
   return (
     <div className="px-4 md:px-8 mb-14">
       <div className="mb-5">
@@ -69,11 +91,11 @@ function BrandsSection() {
         <h2 className="font-['Syne'] text-2xl font-bold text-white">Shop by Brand</h2>
       </div>
       <div className="flex flex-wrap gap-3">
-        {brands.map((b) => (
-          <button key={b} onClick={() => setActive(b)}
+        {brands.map((brand) => (
+          <button key={brand} onClick={() => onBrandSelect(brand)}
             className={`h-10 px-5 rounded-full border text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5
-              ${active === b ? "bg-white text-black border-white" : "bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
-            {b}
+              ${activeBrand === brand ? "bg-white text-black border-white" : "bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
+            {brand}
           </button>
         ))}
       </div>
@@ -82,21 +104,71 @@ function BrandsSection() {
 }
 
 export default function SpeakersPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeBrand, setActiveBrand] = useState("All");
+  const [sortBy, setSortBy] = useState("popular");
+  const [minRating, setMinRating] = useState(0);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getProducts("Speakers");
+        setProducts(data);
+      } catch (err) {
+        setError("Failed to load products!");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  let filteredProducts = products
+    .filter(p => activeBrand === "All" || p.brand === activeBrand)
+    .filter(p => p.rating >= minRating)
+    .filter(p => p.price >= priceRange[0] && (priceRange[1] === 0 || p.price <= priceRange[1]));
+
+  if (sortBy === "price_asc") filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
+  else if (sortBy === "price_desc") filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
+  else if (sortBy === "rating") filteredProducts = [...filteredProducts].sort((a, b) => b.rating - a.rating);
+
+  const featuredProducts = filteredProducts.filter(p => p.rating >= 4.5);
+  const dealProducts = filteredProducts
+    .filter(p => ((p.originalPrice - p.price) / p.originalPrice) * 100 >= 20)
+    .map(p => ({ ...p, discount: Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) }));
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] pt-10 pb-20">
-      <motion.div className="px-4 md:px-8 mb-12 text-center" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22,1,0.36,1] }}>
+      <motion.div
+        className="px-4 md:px-8 mb-12 text-center"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
         <p className="text-[11px] font-semibold uppercase tracking-[3px] mb-3" style={{ color: accentColor }}>Category</p>
         <h1 className="font-['Syne'] text-5xl font-black text-white mb-3">Speakers</h1>
         <p className="text-zinc-400 text-base max-w-md mx-auto">Experience powerful sound with high-quality speakers</p>
         <div className="mt-6 mx-auto w-16 h-0.5 rounded-full bg-gradient-to-r from-red-500 to-orange-400" />
       </motion.div>
-      <HSlider title="Featured Speakers" subtitle="Top Picks" accent={accentColor}>
-        {featuredProducts.map((p) => <FeaturedCard key={p.id} p={p} />)}
+
+      {error && <div className="text-center text-red-400 mb-8">{error}</div>}
+
+      <FilterBar sortBy={sortBy} onSort={setSortBy} minRating={minRating} onRating={setMinRating} priceRange={priceRange} onPrice={setPriceRange} />
+
+      <HSlider title="Featured Speakers" subtitle="Top Picks" accent={accentColor} loading={loading} viewAllPath="/products/speakers/featured">
+        {featuredProducts.map((p) => <FeaturedCard key={p._id} p={{ ...p, id: p._id }} />)}
       </HSlider>
-      <HSlider title="Best Deals & Offers" subtitle="Limited Time" accent="#f97316">
-        {dealProducts.map((p) => <DealCard key={p.id} p={p} />)}
+
+      <HSlider title="Best Deals & Offers" subtitle="Limited Time" accent="#f97316" loading={loading} viewAllPath="/products/speakers/deals">
+        {dealProducts.map((p) => <DealCard key={p._id} p={{ ...p, id: p._id }} />)}
       </HSlider>
-      <BrandsSection />
+
+      <BrandsSection onBrandSelect={setActiveBrand} activeBrand={activeBrand} />
     </div>
   );
 }

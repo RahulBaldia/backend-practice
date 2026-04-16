@@ -1,58 +1,47 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Children } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FeaturedCard, DealCard } from "../components/ProductCard";
-
-const featuredProducts = [
-  { id: 1, name: "Apple AirPods Pro 2nd Gen", price: 24900, originalPrice: 26900, rating: 4.8, reviews: 18432, badge: "Best Seller", badgeColor: "#00e5ff", specs: ["ANC", "30hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 2, name: "Sony WF-1000XM5", price: 19990, originalPrice: 23990, rating: 4.7, reviews: 9821, badge: "Premium", badgeColor: "#a855f7", specs: ["ANC", "24hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 3, name: "Samsung Galaxy Buds3 Pro", price: 17999, originalPrice: 21999, rating: 4.6, reviews: 7654, badge: "Top Rated", badgeColor: "#22c55e", specs: ["ANC", "30hr Battery", "BT 5.4"], img: "🎵" },
-  { id: 4, name: "OnePlus Buds 3 Pro", price: 9999, originalPrice: 13999, rating: 4.5, reviews: 5432, badge: "Trending", badgeColor: "#f59e0b", specs: ["ANC", "44hr Battery", "BT 5.4"], img: "🎵" },
-  { id: 5, name: "Noise Buds VS104", price: 1299, originalPrice: 2999, rating: 4.2, reviews: 34521, badge: "Value Pick", badgeColor: "#3b82f6", specs: ["ENC", "50hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 6, name: "boAt Airdopes 141", price: 999, originalPrice: 2990, rating: 4.1, reviews: 120432, badge: "Popular", badgeColor: "#ef4444", specs: ["ENC", "42hr Battery", "BT 5.0"], img: "🎵" },
-];
-
-const dealProducts = [
-  { id: 7, name: "Realme Buds Air 5 Pro", price: 3999, originalPrice: 7999, discount: 50, rating: 4.3, reviews: 12045, specs: ["ANC", "38hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 8, name: "boAt Airdopes 181", price: 1299, originalPrice: 3990, discount: 67, rating: 4.2, reviews: 87654, specs: ["ENC", "50hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 9, name: "Noise Buds Connect 2", price: 1799, originalPrice: 3999, discount: 55, rating: 4.0, reviews: 23421, specs: ["ENC", "60hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 10, name: "OnePlus Nord Buds 2r", price: 2499, originalPrice: 4999, discount: 50, rating: 4.3, reviews: 9832, specs: ["ENC", "38hr Battery", "BT 5.3"], img: "🎵" },
-  { id: 11, name: "Sony WF-C700N", price: 8990, originalPrice: 13990, discount: 36, rating: 4.5, reviews: 4321, specs: ["ANC", "15hr Battery", "BT 5.0"], img: "🎵" },
-  { id: 12, name: "Realme Buds T110", price: 999, originalPrice: 1999, discount: 50, rating: 4.0, reviews: 43210, specs: ["ENC", "38hr Battery", "BT 5.3"], img: "🎵" },
-];
+import { FeaturedCard, DealCard, SkeletonCard } from "../components/ProductCard";
+import { getProducts } from "../services/productService";
 
 const brands = ["All", "boAt", "Noise", "Realme", "OnePlus", "Apple", "Sony", "Samsung", "JBL"];
+const accentColor = "#a855f7";
 
-
-
-
-
-function HSlider({ children, title, subtitle, accentColor = "#a855f7" }) {
+function HSlider({ children, title, subtitle, accent, loading, viewAllPath }) {
   const ref = useRef(null);
+  const navigate = useNavigate();
   const scroll = (dir) => ref.current?.scrollBy({ left: dir * 280, behavior: "smooth" });
-
   return (
     <div className="mb-14">
       <div className="flex items-end justify-between mb-5 px-4 md:px-8">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[2.5px] mb-1" style={{ color: accentColor }}>{subtitle}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[2.5px] mb-1" style={{ color: accent }}>{subtitle}</p>
           <h2 className="font-['Syne'] text-2xl font-bold text-white">{title}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => scroll(-1)} className="w-9 h-9 rounded-full border border-zinc-700 bg-zinc-900 flex items-center justify-center text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-600">
+          <button onClick={() => scroll(-1)} className="w-9 h-9 rounded-full border border-zinc-700 bg-zinc-900 flex items-center justify-center text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
           </button>
-          <button onClick={() => scroll(1)} className="w-9 h-9 rounded-full border border-zinc-700 bg-zinc-900 flex items-center justify-center text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-600">
+          <button onClick={() => scroll(1)} className="w-9 h-9 rounded-full border border-zinc-700 bg-zinc-900 flex items-center justify-center text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
-          <button className="ml-1 text-[12px] font-semibold px-4 h-9 rounded-full border transition-all hover:-translate-y-0.5"
-            style={{ borderColor: `${accentColor}40`, color: accentColor, background: `${accentColor}10` }}>
+          <button onClick={() => navigate(viewAllPath)} className="ml-1 text-[12px] font-semibold px-4 h-9 rounded-full border transition-all hover:-translate-y-0.5"
+            style={{ borderColor: `${accent}40`, color: accent, background: `${accent}10` }}>
             View All →
           </button>
         </div>
       </div>
       <div className="relative overflow-y-visible">
         <div ref={ref} className="flex gap-4 overflow-x-auto px-4 md:px-8 pb-4 pt-4" style={{ scrollbarWidth: "none" }}>
-          {children}
+          {loading
+            ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+            : Children.map(children, (child, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}>
+                  {child}
+                </motion.div>
+              ))
+          }
         </div>
         <div className="absolute right-0 top-0 bottom-2 w-16 pointer-events-none"
           style={{ background: "linear-gradient(to left, #0a0a0a, transparent)" }} />
@@ -61,8 +50,40 @@ function HSlider({ children, title, subtitle, accentColor = "#a855f7" }) {
   );
 }
 
-function BrandsSection() {
-  const [active, setActive] = useState("All");
+function FilterBar({ sortBy, onSort, minRating, onRating, priceRange, onPrice }) {
+  return (
+    <div className="px-4 md:px-8 mb-8">
+      <div className="flex flex-wrap items-center gap-3">
+        <select value={sortBy} onChange={e => onSort(e.target.value)}
+          className="h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-zinc-300 outline-none cursor-pointer">
+          <option value="popular">Most Popular</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+        </select>
+        <div className="flex gap-2">
+          {[{ label: "All Ratings", value: 0 }, { label: "3★+", value: 3 }, { label: "4★+", value: 4 }, { label: "4.5★+", value: 4.5 }].map(r => (
+            <button key={r.value} onClick={() => onRating(r.value)}
+              className={`h-10 px-4 rounded-xl border text-[12px] font-semibold transition-all
+                ${minRating === r.value ? "bg-amber-400 text-black border-amber-400" : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-[12px] text-zinc-500">₹</span>
+          <input type="number" value={priceRange[0]} onChange={e => onPrice([Number(e.target.value), priceRange[1]])}
+            placeholder="Min" className="w-24 h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-white outline-none focus:border-zinc-500" />
+          <span className="text-zinc-600 text-sm">—</span>
+          <input type="number" value={priceRange[1]} onChange={e => onPrice([priceRange[0], Number(e.target.value)])}
+            placeholder="Max" className="w-28 h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-white outline-none focus:border-zinc-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BrandsSection({ onBrandSelect, activeBrand }) {
   return (
     <div className="px-4 md:px-8 mb-14">
       <div className="mb-5">
@@ -71,9 +92,9 @@ function BrandsSection() {
       </div>
       <div className="flex flex-wrap gap-3">
         {brands.map((brand) => (
-          <button key={brand} onClick={() => setActive(brand)}
+          <button key={brand} onClick={() => onBrandSelect(brand)}
             className={`h-10 px-5 rounded-full border text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5
-              ${active === brand ? "bg-white text-black border-white" : "bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
+              ${activeBrand === brand ? "bg-white text-black border-white" : "bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
             {brand}
           </button>
         ))}
@@ -83,31 +104,71 @@ function BrandsSection() {
 }
 
 export default function TWSPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeBrand, setActiveBrand] = useState("All");
+  const [sortBy, setSortBy] = useState("popular");
+  const [minRating, setMinRating] = useState(0);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getProducts("TWS Earbuds");
+        setProducts(data);
+      } catch (err) {
+        setError("Failed to load products!");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  let filteredProducts = products
+    .filter(p => activeBrand === "All" || p.brand === activeBrand)
+    .filter(p => p.rating >= minRating)
+    .filter(p => p.price >= priceRange[0] && (priceRange[1] === 0 || p.price <= priceRange[1]));
+
+  if (sortBy === "price_asc") filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
+  else if (sortBy === "price_desc") filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
+  else if (sortBy === "rating") filteredProducts = [...filteredProducts].sort((a, b) => b.rating - a.rating);
+
+  const featuredProducts = filteredProducts.filter(p => p.rating >= 4.5);
+  const dealProducts = filteredProducts
+    .filter(p => ((p.originalPrice - p.price) / p.originalPrice) * 100 >= 20)
+    .map(p => ({ ...p, discount: Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) }));
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] pt-10 pb-20">
-
       <motion.div
         className="px-4 md:px-8 mb-12 text-center"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        <p className="text-[11px] font-semibold uppercase tracking-[3px] text-purple-400 mb-3">Category</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[3px] mb-3" style={{ color: accentColor }}>Category</p>
         <h1 className="font-['Syne'] text-5xl font-black text-white mb-3">TWS Earbuds</h1>
         <p className="text-zinc-400 text-base max-w-md mx-auto">Experience true wireless freedom with top-quality earbuds</p>
         <div className="mt-6 mx-auto w-16 h-0.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
       </motion.div>
 
-      <HSlider title="Featured Earbuds" subtitle="Top Picks" accentColor="#a855f7">
-        {featuredProducts.map((p) => <FeaturedCard key={p.id} p={p} />)}
+      {error && <div className="text-center text-red-400 mb-8">{error}</div>}
+
+      <FilterBar sortBy={sortBy} onSort={setSortBy} minRating={minRating} onRating={setMinRating} priceRange={priceRange} onPrice={setPriceRange} />
+
+      <HSlider title="Featured TWS Earbuds" subtitle="Top Picks" accent={accentColor} loading={loading} viewAllPath="/products/tws/featured">
+        {featuredProducts.map((p) => <FeaturedCard key={p._id} p={{ ...p, id: p._id }} />)}
       </HSlider>
 
-      <HSlider title="Best Deals & Offers" subtitle="Limited Time" accentColor="#f97316">
-        {dealProducts.map((p) => <DealCard key={p.id} p={p} />)}
+      <HSlider title="Best Deals & Offers" subtitle="Limited Time" accent="#f97316" loading={loading} viewAllPath="/products/tws/deals">
+        {dealProducts.map((p) => <DealCard key={p._id} p={{ ...p, id: p._id }} />)}
       </HSlider>
 
-      <BrandsSection />
-
+      <BrandsSection onBrandSelect={setActiveBrand} activeBrand={activeBrand} />
     </div>
   );
 }

@@ -1,32 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Children } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FeaturedCard, DealCard } from "../components/ProductCard";
+import { FeaturedCard, DealCard, SkeletonCard } from "../components/ProductCard";
+import { getProducts } from "../services/productService";
 
-const featuredProducts = [
-  { id: 1, name: "iPhone 15 Pro Max", price: 134900, originalPrice: 159900, rating: 4.9, reviews: 23421, badge: "Best Seller", badgeColor: "#00e5ff", specs: ["256GB", "48MP", "4422mAh", "A17 Pro"], img: "📱" },
-  { id: 2, name: "Samsung Galaxy S24 Ultra", price: 129999, originalPrice: 149999, rating: 4.8, reviews: 18932, badge: "Premium", badgeColor: "#a855f7", specs: ["12GB RAM", "200MP", "5000mAh", "Snapdragon 8 Gen 3"], img: "📱" },
-  { id: 3, name: "OnePlus 12", price: 64999, originalPrice: 74999, rating: 4.7, reviews: 12043, badge: "Top Rated", badgeColor: "#22c55e", specs: ["16GB RAM", "50MP", "5400mAh", "Snapdragon 8 Gen 3"], img: "📱" },
-  { id: 4, name: "Xiaomi 14 Ultra", price: 99999, originalPrice: 114999, rating: 4.6, reviews: 8765, badge: "Trending", badgeColor: "#f59e0b", specs: ["16GB RAM", "50MP", "5000mAh", "Snapdragon 8 Gen 3"], img: "📱" },
-  { id: 5, name: "Realme GT 6", price: 34999, originalPrice: 44999, rating: 4.4, reviews: 9832, badge: "Value Pick", badgeColor: "#3b82f6", specs: ["12GB RAM", "50MP", "5500mAh", "Snapdragon 8s Gen 3"], img: "📱" },
-  { id: 6, name: "Samsung Galaxy A55", price: 34999, originalPrice: 40999, rating: 4.3, reviews: 34210, badge: "Popular", badgeColor: "#ef4444", specs: ["8GB RAM", "50MP", "5000mAh", "Exynos 1480"], img: "📱" },
-];
-
-const dealProducts = [
-  { id: 7, name: "iPhone 14", price: 64900, originalPrice: 79900, discount: 19, rating: 4.7, reviews: 45321, specs: ["128GB", "12MP", "3279mAh", "A15 Bionic"], img: "📱" },
-  { id: 8, name: "OnePlus Nord CE 4", price: 24999, originalPrice: 34999, discount: 29, rating: 4.4, reviews: 12043, specs: ["8GB RAM", "50MP", "5500mAh", "Snapdragon 7s Gen 2"], img: "📱" },
-  { id: 9, name: "Xiaomi Redmi Note 13 Pro", price: 22999, originalPrice: 32999, discount: 30, rating: 4.3, reviews: 54321, specs: ["8GB RAM", "200MP", "5100mAh", "Snapdragon 7s Gen 2"], img: "📱" },
-  { id: 10, name: "Realme Narzo 70 Pro", price: 18999, originalPrice: 26999, discount: 30, rating: 4.2, reviews: 23421, specs: ["8GB RAM", "50MP", "5000mAh", "Dimensity 7050"], img: "📱" },
-  { id: 11, name: "Samsung Galaxy M55", price: 27999, originalPrice: 36999, discount: 24, rating: 4.3, reviews: 8762, specs: ["8GB RAM", "50MP", "6000mAh", "Snapdragon 7 Gen 1"], img: "📱" },
-  { id: 12, name: "Xiaomi Poco X6 Pro", price: 26999, originalPrice: 36999, discount: 27, rating: 4.5, reviews: 19832, specs: ["12GB RAM", "64MP", "5000mAh", "Dimensity 8300"], img: "📱" },
-];
-
-const brands = ["All", "Apple", "Samsung", "OnePlus", "Xiaomi", "Realme", "iQOO", "Motorola", "Nothing"];
+const brands = ["All", "Apple", "Samsung", "OnePlus", "Xiaomi", "Realme", "iQOO", "Motorola"];
 const accentColor = "#22c55e";
 
-
-
-function HSlider({ children, title, subtitle, accent }) {
+function HSlider({ children, title, subtitle, accent, loading, viewAllPath }) {
   const ref = useRef(null);
+  const navigate = useNavigate();
   const scroll = (dir) => ref.current?.scrollBy({ left: dir * 280, behavior: "smooth" });
   return (
     <div className="mb-14">
@@ -42,19 +25,65 @@ function HSlider({ children, title, subtitle, accent }) {
           <button onClick={() => scroll(1)} className="w-9 h-9 rounded-full border border-zinc-700 bg-zinc-900 flex items-center justify-center text-zinc-400 transition-all hover:bg-zinc-800 hover:text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
-          <button className="ml-1 text-[12px] font-semibold px-4 h-9 rounded-full border transition-all hover:-translate-y-0.5" style={{ borderColor: `${accent}40`, color: accent, background: `${accent}10` }}>View All →</button>
+          <button onClick={() => navigate(viewAllPath)} className="ml-1 text-[12px] font-semibold px-4 h-9 rounded-full border transition-all hover:-translate-y-0.5"
+            style={{ borderColor: `${accent}40`, color: accent, background: `${accent}10` }}>
+            View All →
+          </button>
         </div>
       </div>
       <div className="relative overflow-y-visible">
-        <div ref={ref} className="flex gap-4 overflow-x-auto px-4 md:px-8 pb-4 pt-4" style={{ scrollbarWidth: "none" }}>{children}</div>
-        <div className="absolute right-0 top-0 bottom-2 w-16 pointer-events-none" style={{ background: "linear-gradient(to left, #0a0a0a, transparent)" }} />
+        <div ref={ref} className="flex gap-4 overflow-x-auto px-4 md:px-8 pb-4 pt-4" style={{ scrollbarWidth: "none" }}>
+          {loading
+            ? [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+            : Children.map(children, (child, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}>
+                  {child}
+                </motion.div>
+              ))
+          }
+        </div>
+        <div className="absolute right-0 top-0 bottom-2 w-16 pointer-events-none"
+          style={{ background: "linear-gradient(to left, #0a0a0a, transparent)" }} />
       </div>
     </div>
   );
 }
 
-function BrandsSection() {
-  const [active, setActive] = useState("All");
+function FilterBar({ sortBy, onSort, minRating, onRating, priceRange, onPrice }) {
+  return (
+    <div className="px-4 md:px-8 mb-8">
+      <div className="flex flex-wrap items-center gap-3">
+        <select value={sortBy} onChange={e => onSort(e.target.value)}
+          className="h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-zinc-300 outline-none cursor-pointer">
+          <option value="popular">Most Popular</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+        </select>
+        <div className="flex gap-2">
+          {[{ label: "All Ratings", value: 0 }, { label: "3★+", value: 3 }, { label: "4★+", value: 4 }, { label: "4.5★+", value: 4.5 }].map(r => (
+            <button key={r.value} onClick={() => onRating(r.value)}
+              className={`h-10 px-4 rounded-xl border text-[12px] font-semibold transition-all
+                ${minRating === r.value ? "bg-amber-400 text-black border-amber-400" : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="text-[12px] text-zinc-500">₹</span>
+          <input type="number" value={priceRange[0]} onChange={e => onPrice([Number(e.target.value), priceRange[1]])}
+            placeholder="Min" className="w-24 h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-white outline-none focus:border-zinc-500" />
+          <span className="text-zinc-600 text-sm">—</span>
+          <input type="number" value={priceRange[1]} onChange={e => onPrice([priceRange[0], Number(e.target.value)])}
+            placeholder="Max" className="w-28 h-10 px-3 rounded-xl border border-zinc-700 bg-zinc-900 text-sm text-white outline-none focus:border-zinc-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BrandsSection({ onBrandSelect, activeBrand }) {
   return (
     <div className="px-4 md:px-8 mb-14">
       <div className="mb-5">
@@ -62,10 +91,11 @@ function BrandsSection() {
         <h2 className="font-['Syne'] text-2xl font-bold text-white">Shop by Brand</h2>
       </div>
       <div className="flex flex-wrap gap-3">
-        {brands.map((b) => (
-          <button key={b} onClick={() => setActive(b)}
-            className={`h-10 px-5 rounded-full border text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 ${active === b ? "bg-white text-black border-white" : "bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
-            {b}
+        {brands.map((brand) => (
+          <button key={brand} onClick={() => onBrandSelect(brand)}
+            className={`h-10 px-5 rounded-full border text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5
+              ${activeBrand === brand ? "bg-white text-black border-white" : "bg-transparent border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"}`}>
+            {brand}
           </button>
         ))}
       </div>
@@ -74,21 +104,71 @@ function BrandsSection() {
 }
 
 export default function SmartphonesPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeBrand, setActiveBrand] = useState("All");
+  const [sortBy, setSortBy] = useState("popular");
+  const [minRating, setMinRating] = useState(0);
+  const [priceRange, setPriceRange] = useState([0, 200000]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getProducts("Smartphones");
+        setProducts(data);
+      } catch (err) {
+        setError("Failed to load products!");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  let filteredProducts = products
+    .filter(p => activeBrand === "All" || p.brand === activeBrand)
+    .filter(p => p.rating >= minRating)
+    .filter(p => p.price >= priceRange[0] && (priceRange[1] === 0 || p.price <= priceRange[1]));
+
+  if (sortBy === "price_asc") filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
+  else if (sortBy === "price_desc") filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
+  else if (sortBy === "rating") filteredProducts = [...filteredProducts].sort((a, b) => b.rating - a.rating);
+
+  const featuredProducts = filteredProducts.filter(p => p.rating >= 4.5);
+  const dealProducts = filteredProducts
+    .filter(p => ((p.originalPrice - p.price) / p.originalPrice) * 100 >= 20)
+    .map(p => ({ ...p, discount: Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) }));
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] pt-10 pb-20">
-      <motion.div className="px-4 md:px-8 mb-12 text-center" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22,1,0.36,1] }}>
+      <motion.div
+        className="px-4 md:px-8 mb-12 text-center"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
         <p className="text-[11px] font-semibold uppercase tracking-[3px] mb-3" style={{ color: accentColor }}>Category</p>
         <h1 className="font-['Syne'] text-5xl font-black text-white mb-3">Smartphones</h1>
-        <p className="text-zinc-400 text-base max-w-md mx-auto">Discover the latest smartphones with powerful performance and features</p>
+        <p className="text-zinc-400 text-base max-w-md mx-auto">Discover the latest smartphones with powerful performance</p>
         <div className="mt-6 mx-auto w-16 h-0.5 rounded-full bg-gradient-to-r from-green-400 to-cyan-400" />
       </motion.div>
-      <HSlider title="Featured Smartphones" subtitle="Top Picks" accent={accentColor}>
-        {featuredProducts.map((p) => <FeaturedCard key={p.id} p={p} />)}
+
+      {error && <div className="text-center text-red-400 mb-8">{error}</div>}
+
+      <FilterBar sortBy={sortBy} onSort={setSortBy} minRating={minRating} onRating={setMinRating} priceRange={priceRange} onPrice={setPriceRange} />
+
+      <HSlider title="Featured Smartphones" subtitle="Top Picks" accent={accentColor} loading={loading} viewAllPath="/products/smartphones/featured">
+        {featuredProducts.map((p) => <FeaturedCard key={p._id} p={{ ...p, id: p._id }} />)}
       </HSlider>
-      <HSlider title="Best Deals & Offers" subtitle="Limited Time" accent="#f97316">
-        {dealProducts.map((p) => <DealCard key={p.id} p={p} />)}
+
+      <HSlider title="Best Deals & Offers" subtitle="Limited Time" accent="#f97316" loading={loading} viewAllPath="/products/smartphones/deals">
+        {dealProducts.map((p) => <DealCard key={p._id} p={{ ...p, id: p._id }} />)}
       </HSlider>
-      <BrandsSection />
+
+      <BrandsSection onBrandSelect={setActiveBrand} activeBrand={activeBrand} />
     </div>
   );
 }
