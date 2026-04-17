@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://croma-backend-g2o0.onrender.com/api",
 });
 
 // Har request mein token automatically lagao
