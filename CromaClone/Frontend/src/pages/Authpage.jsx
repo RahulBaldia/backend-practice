@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { loginUser, registerUser } from "../services/authService";
+import { loginUser, registerUser } from "../services/Authservice";
 
 function GoogleIcon() {
   return (
