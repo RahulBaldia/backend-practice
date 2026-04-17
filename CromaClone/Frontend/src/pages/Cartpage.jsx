@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { getCart, updateCartItem, removeFromCart, clearCart } from "../services/cartService";
+import { getCart, updateCartItem, removeFromCart, clearCart } from "../services/Cartservice";
 import { createOrder } from "../services/orderService";
 
 const COUPONS = { "CROMA10": 10, "SAVE20": 20, "FIRST15": 15 };

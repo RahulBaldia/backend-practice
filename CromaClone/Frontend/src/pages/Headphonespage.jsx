@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, Children } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FeaturedCard, DealCard, SkeletonCard } from "../components/ProductCard";
-import { getProducts } from "../services/productService";
+import { getProducts } from "../services/Productservice";
 
 const brands = ["All", "boAt", "Sony", "Apple", "JBL", "Noise", "Bose", "Sennheiser", "Skullcandy", "OnePlus"];
 

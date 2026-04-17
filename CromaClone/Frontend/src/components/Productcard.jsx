@@ -1,7 +1,7 @@
 import { useState, memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { addToCart } from "../services/cartService";
+import { addToCart } from "../services/Cartservice";
 import { useCart } from "../context/Cartcontext";
 import { useWishlist } from "../context/WishlistContext";
 
@@ -74,7 +74,14 @@ export const FeaturedCard = memo(function FeaturedCard({ p }) {
       await fetchCartCount();
       setTimeout(() => setCartAnim(false), 1500);
     } catch (err) {
-      showToast("Failed to add to cart!");
+      if (err?.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.dispatchEvent(new Event("auth-change"));
+        showToast("Session expired! Please login again 🔒");
+      } else {
+        showToast("Failed to add to cart!");
+      }
       console.error(err);
     }
   }, [productId, fetchCartCount, showToast]);
@@ -152,11 +159,9 @@ export const FeaturedCard = memo(function FeaturedCard({ p }) {
       <div className="px-4 pt-4 pb-3">
         <p className="text-[15px] font-semibold text-white leading-snug mb-2.5 line-clamp-2 min-h-[46px]">{p.name}</p>
 
-        {p.specs && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {p.specs.map((s) => <SpecPill key={s} label={s} />)}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-1 mb-3 h-[28px] overflow-hidden">
+          {(p.specs || []).slice(0, 3).map((s) => <SpecPill key={s} label={s} />)}
+        </div>
 
         <div className="flex items-center gap-1.5 mb-3">
           <Stars rating={p.rating} />
@@ -222,7 +227,14 @@ export const DealCard = memo(function DealCard({ p }) {
       await fetchCartCount();
       setTimeout(() => setCartAnim(false), 1500);
     } catch (err) {
-      showToast("Failed to add to cart!");
+      if (err?.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.dispatchEvent(new Event("auth-change"));
+        showToast("Session expired! Please login again 🔒");
+      } else {
+        showToast("Failed to add to cart!");
+      }
       console.error(err);
     }
   }, [productId, fetchCartCount, showToast]);
@@ -297,11 +309,9 @@ export const DealCard = memo(function DealCard({ p }) {
       <div className="px-4 pt-4 pb-3">
         <p className="text-[15px] font-semibold text-white leading-snug mb-2.5 line-clamp-2 min-h-[46px]">{p.name}</p>
 
-        {p.specs && (
-          <div className="flex flex-wrap gap-1 mb-3">
-            {p.specs.map((s) => <SpecPill key={s} label={s} />)}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-1 mb-3 h-[28px] overflow-hidden">
+          {(p.specs || []).slice(0, 3).map((s) => <SpecPill key={s} label={s} />)}
+        </div>
 
         <div className="flex items-center gap-1.5 mb-3">
           <Stars rating={p.rating} />

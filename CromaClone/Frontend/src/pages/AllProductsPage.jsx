@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FeaturedCard, DealCard, SkeletonCard } from "../components/ProductCard";
-import { getProducts } from "../services/productService";
+import { getProducts } from "../services/Productservice";
 
 const CATEGORY_CONFIG = {
   headphones:  { label: "Headphones",      api: "Headphones",       backPath: "/headphones",  color: "#00e5ff" },

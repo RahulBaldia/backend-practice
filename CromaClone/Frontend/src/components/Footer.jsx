@@ -5,10 +5,10 @@ import { useState } from "react";
 const footerLinks = {
   quickLinks: [
     { name: "Home", path: "/" },
-    { name: "Categories", path: "/" },
-    { name: "Deals", path: "/" },
+    { name: "Headphones", path: "/headphones" },
+    { name: "Deals", path: "/products/headphones/deals" },
     { name: "Cart", path: "/cart" },
-    { name: "Wishlist", path: "/wishlist" },
+    { name: "Wishlist", path: "/account" },
   ],
   categories: [
     { name: "Headphones", path: "/headphones" },
@@ -19,17 +19,17 @@ const footerLinks = {
     { name: "Speakers", path: "/speakers" },
   ],
   support: [
-    { name: "Help Center", path: "/" },
-    { name: "Contact Us", path: "/" },
-    { name: "Return & Refund Policy", path: "/" },
-    { name: "Shipping Information", path: "/" },
-    { name: "FAQs", path: "/" },
+    { name: "Help Center", path: "/account" },
+    { name: "Contact Us", path: "/account" },
+    { name: "Return & Refund Policy", path: "/account" },
+    { name: "Shipping Information", path: "/account" },
+    { name: "FAQs", path: "/account" },
   ],
   account: [
-    { name: "Login / Register", path: "/" },
-    { name: "My Orders", path: "/" },
-    { name: "Privacy Policy", path: "/" },
-    { name: "Terms & Conditions", path: "/" },
+    { name: "Login / Register", path: "/login" },
+    { name: "My Orders", path: "/account" },
+    { name: "My Profile", path: "/account" },
+    { name: "Admin Dashboard", path: "/admin" },
   ],
 };
 
@@ -269,7 +269,7 @@ export default function Footer() {
           </p>
           <p className="text-[13px] text-zinc-600">
             Designed with ❤️ by{" "}
-            <span className="text-cyan-400 font-semibold">Your Name</span>
+            <span className="text-cyan-400 font-semibold">Rahul Baldia</span>
           </p>
           <div className="flex items-center gap-4">
             <button className="text-[12px] text-zinc-500 hover:text-zinc-300 transition-colors">Privacy Policy</button>

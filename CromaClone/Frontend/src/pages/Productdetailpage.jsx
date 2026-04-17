@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProductById, getProducts, addReview } from "../services/productService";
-import { addToCart } from "../services/cartService";
+import { getProductById, getProducts, addReview } from "../services/Productservice";
+import { addToCart } from "../services/Cartservice";
 import { useCart } from "../context/Cartcontext";
 import { useWishlist } from "../context/WishlistContext";
 

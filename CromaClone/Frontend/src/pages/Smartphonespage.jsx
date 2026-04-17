@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, Children } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FeaturedCard, DealCard, SkeletonCard } from "../components/ProductCard";
-import { getProducts } from "../services/productService";
+import { getProducts } from "../services/Productservice";
 
 const brands = ["All", "Apple", "Samsung", "OnePlus", "Xiaomi", "Realme", "iQOO", "Motorola"];
 const accentColor = "#22c55e";

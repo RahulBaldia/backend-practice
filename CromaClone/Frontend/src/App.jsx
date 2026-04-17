@@ -21,6 +21,7 @@ const AccountPage        = lazy(() => import("./pages/Accountpage"));
 const AdminPage          = lazy(() => import("./pages/Adminpage"));
 const AllProductsPage    = lazy(() => import("./pages/AllProductsPage"));
 const SearchPage         = lazy(() => import("./pages/Searchpage"));
+const NotFoundPage       = lazy(() => import("./pages/NotFoundPage"));
 
 function PageLoader() {
   return (
@@ -98,6 +99,7 @@ export default function App() {
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/products/:category/:type" element={<AllProductsPage />} />
                 <Route path="/search" element={<SearchPage />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
           </main>
