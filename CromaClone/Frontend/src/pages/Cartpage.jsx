@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCart, updateCartItem, removeFromCart, clearCart } from "../services/Cartservice";
 import { createOrder } from "../services/Orderservice";
+import { createRazorpayOrder, verifyRazorpayPayment } from "../services/Paymentservice"
+
 
 const COUPONS = { "CROMA10": 10, "SAVE20": 20, "FIRST15": 15 };
 
@@ -254,37 +256,72 @@ export default function CartPage() {
     setShowAddressModal(true);
   };
 
-  const handleConfirmOrder = async (shippingAddress) => {
-    setShowAddressModal(false);
-    try {
-      setOrderLoading(true);
-      const items = cart.items.map(item => ({
-        product: item.product._id,
-        name: item.product.name,
-        image: item.product.images?.[0] || "",
-        price: item.product.price,
-        quantity: item.quantity,
-      }));
+ const handleConfirmOrder = async (shippingAddress) => {
+  setShowAddressModal(false)
+  try {
+    setOrderLoading(true)
 
-      await createOrder({
-        items,
-        shippingAddress,
-        paymentMethod: "UPI",
-        itemsPrice: subtotal,
-        discountPrice: couponDiscount,
-        deliveryPrice: delivery,
-        totalPrice: total,
-      });
+    // Step 1 — Backend se Razorpay order banao
+    const { order } = await createRazorpayOrder(total)
 
-      await clearCart();
-      setOrderSuccess(true);
-      setTimeout(() => navigate("/"), 2500);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setOrderLoading(false);
+    // Step 2 — Razorpay popup kholo
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: "INR",
+      name: "Croma Clone",
+      description: "Order Payment",
+      order_id: order.id,
+
+      // Step 3 — Payment successful
+      handler: async (response) => {
+        const verified = await verifyRazorpayPayment({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        })
+
+        if(verified.success) {
+          // Order save karo
+          const items = cart.items.map(item => ({
+            product: item.product._id,
+            name: item.product.name,
+            image: item.product.images?.[0] || "",
+            price: item.product.price,
+            quantity: item.quantity,
+          }))
+
+          await createOrder({
+            items,
+            shippingAddress,
+            paymentMethod: "Razorpay",
+            itemsPrice: subtotal,
+            discountPrice: couponDiscount,
+            deliveryPrice: delivery,
+            totalPrice: total,
+          })
+
+          await clearCart()
+          setOrderSuccess(true)
+          setTimeout(() => navigate("/"), 2500)
+        }
+      },
+      prefill: {
+        name: shippingAddress.fullName,
+        contact: shippingAddress.phone,
+      },
+      theme: { color: "#22d3ee" }  // cyan color
     }
-  };
+
+    const razorpay = new window.Razorpay(options)
+    razorpay.open()
+
+  } catch (err) {
+    console.error(err)
+  } finally {
+    setOrderLoading(false)
+  }
+}
 
   const items = cart?.items || [];
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);

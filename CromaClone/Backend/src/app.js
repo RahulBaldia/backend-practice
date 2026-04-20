@@ -14,6 +14,7 @@ app.use("/api/auth", require("./routes/Authroutes"));
 app.use("/api/products", require("./routes/Productroutes"));
 app.use("/api/cart", require("./routes/Cartroutes"));
 app.use("/api/orders", require("./routes/Orderroutes"));
+app.use("/api/payment", require("./routes/Paymentroutes"));
 
 app.get("/", (req, res) => {
   res.json({ message: "Croma Clone API is running!" });
