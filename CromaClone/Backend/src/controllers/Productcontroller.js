@@ -98,12 +98,25 @@ const addReview = async (req, res) => {
       return res.status(400).json({ message: "Product already reviewed" });
     }
 
+    // Check karo user ne ye product kharida hai (delivered order mein)
+    const Order = require("../models/Ordermodel");
+    const verifiedOrder = await Order.findOne({
+      user: req.user._id,
+      status: "Delivered",
+      "items.product": req.params.id,
+    });
+
+    if (!verifiedOrder) {
+      return res.status(403).json({ message: "You can only review products you have purchased and received." });
+    }
+
     // Naya review add karo
     const review = {
       user: req.user._id,
       name: req.user.name,
       rating: Number(rating),
       comment,
+      verifiedPurchase: true,
     };
     product.reviews.push(review);
 

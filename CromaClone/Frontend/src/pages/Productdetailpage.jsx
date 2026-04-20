@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { getProductById, getProducts, addReview } from "../services/Productservice";
 import { addToCart } from "../services/Cartservice";
+import { getMyOrders } from "../services/Orderservice";
 import { useCart } from "../context/Cartcontext";
 import { useWishlist } from "../context/WishlistContext";
 
@@ -93,6 +94,8 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState("highlights");
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
   const [reviewLoading, setReviewLoading] = useState(false);
+  const [isVerifiedBuyer, setIsVerifiedBuyer] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -113,6 +116,25 @@ export default function ProductDetailPage() {
     };
     fetchProduct();
   }, [id]);
+
+  useEffect(() => {
+    const checkVerifiedPurchase = async () => {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      if (!token || !product) return;
+      try {
+        const orders = await getMyOrders();
+        const verified = orders.some(
+          o => o.status === "Delivered" && o.items.some(item => item.product === product._id || item.product?._id === product._id)
+        );
+        setIsVerifiedBuyer(verified);
+        if (userId) {
+          setHasReviewed(product.reviews?.some(r => r.user === userId || r.user?._id === userId));
+        }
+      } catch {}
+    };
+    checkVerifiedPurchase();
+  }, [product]);
 
   const showCartToast = (msg, type = "error") => {
     setCartToast({ msg, type });
@@ -417,22 +439,34 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
 
-                    <form onSubmit={handleAddReview} className="border-t border-zinc-800 pt-4">
-                      <h4 className="font-semibold text-white mb-3">Write a Review</h4>
-                      <div className="flex gap-2 mb-3">
-                        {[1,2,3,4,5].map(r => (
-                          <button key={r} type="button" onClick={() => setReviewForm(p => ({ ...p, rating: r }))}
-                            className={`text-2xl transition-all ${r <= reviewForm.rating ? "opacity-100" : "opacity-30"}`}>⭐</button>
-                        ))}
-                      </div>
-                      <textarea value={reviewForm.comment} onChange={e => setReviewForm(p => ({ ...p, comment: e.target.value }))}
-                        placeholder="Write your review..."
-                        className="w-full h-24 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-cyan-400/50 resize-none mb-3" />
-                      <button type="submit" disabled={reviewLoading}
-                        className="px-6 h-10 rounded-xl bg-cyan-400 text-black font-bold text-sm hover:bg-cyan-300 transition-colors disabled:opacity-70">
-                        {reviewLoading ? "Submitting..." : "Submit Review"}
-                      </button>
-                    </form>
+                    <div className="border-t border-zinc-800 pt-4">
+                      {!localStorage.getItem("token") ? (
+                        <p className="text-zinc-500 text-sm">Please <button onClick={() => navigate("/login")} className="text-cyan-400 underline">login</button> to write a review.</p>
+                      ) : hasReviewed ? (
+                        <p className="text-green-400 text-sm font-semibold">✓ You have already reviewed this product.</p>
+                      ) : !isVerifiedBuyer ? (
+                        <div className="flex items-center gap-2 p-3 rounded-xl border border-zinc-700 bg-zinc-900/50">
+                          <span className="text-zinc-400 text-sm">Only verified buyers can review this product.</span>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleAddReview}>
+                          <h4 className="font-semibold text-white mb-3">Write a Review</h4>
+                          <div className="flex gap-2 mb-3">
+                            {[1,2,3,4,5].map(r => (
+                              <button key={r} type="button" onClick={() => setReviewForm(p => ({ ...p, rating: r }))}
+                                className={`text-2xl transition-all ${r <= reviewForm.rating ? "opacity-100" : "opacity-30"}`}>⭐</button>
+                            ))}
+                          </div>
+                          <textarea value={reviewForm.comment} onChange={e => setReviewForm(p => ({ ...p, comment: e.target.value }))}
+                            placeholder="Write your review..."
+                            className="w-full h-24 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-cyan-400/50 resize-none mb-3" />
+                          <button type="submit" disabled={reviewLoading}
+                            className="px-6 h-10 rounded-xl bg-cyan-400 text-black font-bold text-sm hover:bg-cyan-300 transition-colors disabled:opacity-70">
+                            {reviewLoading ? "Submitting..." : "Submit Review"}
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   </div>
 
                   {product.reviews?.map((r, i) => (
@@ -443,7 +477,12 @@ export default function ProductDetailPage() {
                           <div className="w-9 h-9 rounded-full bg-cyan-400/20 border border-cyan-400/30 flex items-center justify-center text-sm font-bold text-cyan-400">
                             {r.name?.[0] || "U"}
                           </div>
-                          <p className="text-[13px] font-semibold text-white">{r.name}</p>
+                          <div>
+                            <p className="text-[13px] font-semibold text-white">{r.name}</p>
+                            {r.verifiedPurchase && (
+                              <span className="text-[10px] font-bold text-green-400 flex items-center gap-1">✓ Verified Purchase</span>
+                            )}
+                          </div>
                         </div>
                         <Stars rating={r.rating} size={12} />
                       </div>
