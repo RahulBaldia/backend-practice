@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getCart, updateCartItem, removeFromCart, clearCart } from "../services/Cartservice";
 import { createOrder } from "../services/Orderservice";
-import { createRazorpayOrder, verifyRazorpayPayment } from "../services/Paymentservice"
+import { createRazorpayOrder, verifyRazorpayPayment } from "../services/Paymentservice";
+import { useCart } from "../context/Cartcontext";
 
 
 const COUPONS = { "CROMA10": 10, "SAVE20": 20, "FIRST15": 15 };
@@ -187,6 +188,7 @@ function EmptyCart() {
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const { fetchCartCount } = useCart();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [coupon, setCoupon] = useState("");
@@ -232,6 +234,7 @@ export default function CartPage() {
     try {
       await removeFromCart(productId);
       fetchCart();
+      fetchCartCount();
     } catch (err) {
       console.error(err);
     }
@@ -302,6 +305,7 @@ export default function CartPage() {
           })
 
           await clearCart()
+          fetchCartCount()
           setOrderSuccess(true)
           setTimeout(() => navigate("/"), 2500)
         }
